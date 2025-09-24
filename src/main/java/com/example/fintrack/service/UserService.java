@@ -9,6 +9,9 @@ import com.example.fintrack.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.http.HttpStatus;
+
+import java.util.Optional;
 
 @Service
 public class UserService {
@@ -24,7 +27,7 @@ public class UserService {
     // ✅ Register a new user
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            return new AuthResponse(null, "Email already exists!");
+            return new AuthResponse(null, "Email already exists!",HttpStatus.CONFLICT);
         }
 
         User user = new User();
@@ -37,20 +40,22 @@ public class UserService {
         // generate JWT
         String token = jwtUtil.generateToken(user.getEmail());
 
-        return new AuthResponse(token, "User registered successfully");
+        return new AuthResponse(token, "User registered successfully",HttpStatus.CREATED);
     }
 
     // ✅ Login user
     public AuthResponse login(LoginRequest request) {
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Invalid email or password"));
+        Optional<User> optionalUser = userRepository.findByEmail(request.getEmail());
 
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Invalid email or password");
+        if (optionalUser.isEmpty()) {
+            return new AuthResponse(null, "Email not found", HttpStatus.UNAUTHORIZED);
         }
 
-        String token = jwtUtil.generateToken(user.getEmail());
+        if (!passwordEncoder.matches(request.getPassword(), optionalUser.get().getPassword())) {
+            return new AuthResponse(null, "Invalid email or password", HttpStatus.UNAUTHORIZED);
+        }
 
-        return new AuthResponse(token, "Login successful");
+        String token = jwtUtil.generateToken(optionalUser.get().getEmail());
+        return new AuthResponse(token, "Login successful", HttpStatus.ACCEPTED);
     }
 }

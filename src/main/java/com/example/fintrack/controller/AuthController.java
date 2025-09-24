@@ -1,5 +1,6 @@
 package com.example.fintrack.controller;
 
+import com.example.fintrack.dto.AuthResponse;
 import com.example.fintrack.dto.LoginRequest;
 import com.example.fintrack.dto.RegisterRequest;
 import com.example.fintrack.service.UserService;
@@ -22,11 +23,17 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
-        return ResponseEntity.ok(userService.register(request));
+        AuthResponse response = userService.register(request);
+        return ResponseEntity
+                .status(response.getStatus())
+                .body(response);
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-        return ResponseEntity.ok(userService.login(request));
+        AuthResponse response = userService.login(request);
+        return ResponseEntity
+                .status(response.getStatus())
+                .body(response);
     }
 }
