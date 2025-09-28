@@ -17,7 +17,7 @@ import java.time.LocalDate;
 public class Transaction {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String id;
+    private Long id;
 
     private String title;
     private Double amount;
@@ -27,9 +27,11 @@ public class Transaction {
 
     private LocalDate date;
 
-    @ManyToOne
-    private User user;
+    // Instead of mapping to User entity
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
 
     @ManyToOne
+    @JoinColumn(name = "category_name", referencedColumnName = "name")
     private Category category;
 }

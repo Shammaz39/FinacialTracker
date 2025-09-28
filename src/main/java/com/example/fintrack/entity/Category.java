@@ -14,11 +14,11 @@ import lombok.Setter;
 @Entity
 public class Category {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    private String name; // e.g., "Food", "Salary"
+    @Column(nullable = false, unique = true)
+    private String name; // primary key instead of id
+
     private String description;
 
-    @ManyToOne
-    private User user; // categories are user-specific
+    // Just store userId instead of full User entity
+    private Long userId;
 }

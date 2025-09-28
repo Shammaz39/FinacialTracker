@@ -1,19 +1,22 @@
 package com.example.fintrack.controller;
 
 import com.example.fintrack.entity.Category;
-import com.example.fintrack.entity.User;
 import com.example.fintrack.repository.CategoryRepository;
 import com.example.fintrack.repository.UserRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/categories")
+@Tag(name = "Category", description = "APIs for user defined Category")
+@SecurityRequirement(name = "bearerAuth") // ✅ tells Swagger this endpoint requires JWT
 public class CategoryController {
 
     @Autowired
@@ -24,6 +27,7 @@ public class CategoryController {
 
     // ✅ Get all categories for current user
     @GetMapping("/all")
+    @Operation(summary = "All Categories", description = "Get All Categories")
     public ResponseEntity<List<Category>> getAllCategories(HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("id");
         return ResponseEntity.ok(categoryRepository.findByUserId(userId));
@@ -31,58 +35,51 @@ public class CategoryController {
 
     // ✅ Add new category for current user
     @PostMapping("/add")
+    @Operation(summary = "Add Categories", description = "Add Categories")
     public ResponseEntity<Category> addCategory(@RequestBody Category category,
                                                 HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("id");
-        User user = userRepository.findById(userId).orElseThrow();
-        category.setUser(user); // bind category to logged-in user
+        category.setUserId(userId); // bind category to logged-in user
         return ResponseEntity.ok(categoryRepository.save(category));
     }
 
-    // ✅ Get single category by id (only if owned by user)
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getCategoryById(@PathVariable Long id, HttpServletRequest request) {
-        Long userId = (Long) request.getAttribute("id");
-        Optional<Category> category = categoryRepository.findById(id);
-
-        if (category.isPresent() && category.get().getUser().getId().equals(userId)) {
-            return ResponseEntity.ok(category.get());
-        }
-        return ResponseEntity.status(403).body("Access denied");
-    }
-
-    // ✅ Update category (only if owned by user)
-    @PutMapping("/{id}")
-    public ResponseEntity<?> updateCategory(@PathVariable Long id,
-                                            @RequestBody Category updatedCategory,
-                                            HttpServletRequest request) {
+    @GetMapping("/{name}")
+    public ResponseEntity<Category> getCategoryByName(@PathVariable String name, HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("id");
 
-        return categoryRepository.findById(id)
-                .map(existing -> {
-                    if (!existing.getUser().getId().equals(userId)) {
-                        return ResponseEntity.status(403).body("Access denied");
-                    }
-                    existing.setName(updatedCategory.getName());
-                    existing.setDescription(updatedCategory.getDescription());
-                    return ResponseEntity.ok(categoryRepository.save(existing));
-                })
-                .orElse(ResponseEntity.notFound().build());
+        Category category = categoryRepository.findByNameAndUserId(name, userId)
+                .orElseThrow(() -> new RuntimeException("Access denied or category not found"));
+
+        return ResponseEntity.ok(category);
     }
+
+
+    @PutMapping("/{name}")
+    public ResponseEntity<Category> updateCategory(@PathVariable String name,
+                                                   @RequestBody Category updatedCategory,
+                                                   HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("id");
+
+        Category existing = categoryRepository.findByNameAndUserId(name, userId)
+                .orElseThrow(() -> new RuntimeException("Access denied or category not found"));
+
+        existing.setDescription(updatedCategory.getDescription());
+        Category saved = categoryRepository.save(existing);
+        return ResponseEntity.ok(saved);
+    }
+
 
     // ✅ Delete category (only if owned by user)
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteCategory(@PathVariable Long id, HttpServletRequest request) {
+    @DeleteMapping("/{name}")
+    @Operation(summary = "Delete Category", description = "Delete Category by name")
+    public ResponseEntity<?> deleteCategory(@PathVariable String name, HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("id");
 
-        return categoryRepository.findById(id)
+        return categoryRepository.findByNameAndUserId(name, userId)
                 .map(category -> {
-                    if (!category.getUser().getId().equals(userId)) {
-                        return ResponseEntity.status(403).body("Access denied");
-                    }
-                    categoryRepository.deleteById(id);
+                    categoryRepository.delete(category); // delete entity directly
                     return ResponseEntity.ok("Category deleted successfully");
                 })
-                .orElse(ResponseEntity.notFound().build());
+                .orElse(ResponseEntity.status(403).body("Access denied or category not found"));
     }
 }
