@@ -2,11 +2,13 @@ package com.example.fintrack.service;
 
 import com.example.fintrack.entity.Category;
 import com.example.fintrack.entity.Transaction;
+import com.example.fintrack.entity.TransactionType;
 import com.example.fintrack.repository.CategoryRepository;
 import com.example.fintrack.repository.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -16,9 +18,6 @@ public class TransactionService {
 
     @Autowired
     private CategoryRepository categoryRepository;
-
-    // ✅ No need for UserRepository anymore
-    // private UserRepository userRepository;
 
     public Transaction addTransaction(Transaction transaction, Long userId, String categoryName) {
         // ✅ category lookup
@@ -51,5 +50,25 @@ public class TransactionService {
         }
 
         return transactionRepository.findByUserIdAndCategory_Name(userId, categoryName);
+    }
+
+
+    // ✅ New service: filter by date range
+    public List<Transaction> getTransactionsByDateRange(Long userId, String start, String end) {
+        LocalDate startDate;
+        LocalDate endDate;
+        try {
+            startDate = LocalDate.parse(start);
+            endDate = LocalDate.parse(end);
+        } catch(Exception e) {
+            System.out.println("Exception : " + e);
+            throw new RuntimeException("Wrong Format of Date");
+        }
+        return transactionRepository.findByUserIdAndDateBetween(userId, startDate, endDate);
+    }
+
+    // ✅ New service: filter by type (INCOME / EXPENSE)
+    public List<Transaction> getTransactionsByType(Long userId, TransactionType type) {
+        return transactionRepository.findByUserIdAndType(userId, type);
     }
 }

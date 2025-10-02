@@ -1,6 +1,7 @@
 package com.example.fintrack.controller;
 
 import com.example.fintrack.entity.Transaction;
+import com.example.fintrack.entity.TransactionType;
 import com.example.fintrack.service.TransactionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -45,6 +46,31 @@ public class TransactionController {
             HttpServletRequest request
     ) {
         List<Transaction> list = transactionService.getTransactionCategory((Long) request.getAttribute("id"), categoryName);
+        return ResponseEntity.ok(list);
+    }
+
+    // ✅ 2. Transactions by Date Range
+    @GetMapping("/byDate")
+    @Operation(summary = "Get Transactions by Date Range", description = "Fetch transactions within a date range")
+    public ResponseEntity<List<Transaction>> getTransactionsByDate(
+            @RequestParam String start,
+            @RequestParam String end,
+            HttpServletRequest request
+    ) {
+        Long userId = (Long) request.getAttribute("id");
+        List<Transaction> list = transactionService.getTransactionsByDateRange(userId, start, end);
+        return ResponseEntity.ok(list);
+    }
+
+    // ✅ 3. Transactions by Type (INCOME / EXPENSE)
+    @GetMapping("/byType")
+    @Operation(summary = "Get Transactions by Type", description = "Fetch transactions by type (INCOME or EXPENSE)")
+    public ResponseEntity<List<Transaction>> getTransactionsByType(
+            @RequestParam TransactionType type,
+            HttpServletRequest request
+    ) {
+        Long userId = (Long) request.getAttribute("id");
+        List<Transaction> list = transactionService.getTransactionsByType(userId, type);
         return ResponseEntity.ok(list);
     }
 }
