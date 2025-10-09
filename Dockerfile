@@ -1,7 +1,7 @@
 FROM eclipse-temurin:17-jdk-alpine as builder
 WORKDIR /app
 COPY . .
-RUN mvn clean package -DskipTests
+RUN apk add --no-cache maven && mvn clean package -DskipTests
 
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
