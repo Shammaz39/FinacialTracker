@@ -1,20 +1,9 @@
 services:
   - type: web
-    name: fintrack-backend
-    env: docker
-    dockerfile: Dockerfile
+    name: your-app-name
+    env: java
+    buildCommand: ./mvnw clean package -DskipTests
+    startCommand: java -jar target/*.jar
     envVars:
-      - key: SPRING_PROFILES_ACTIVE
-        value: prod
-      - key: DATABASE_URL
-        fromDatabase:
-          name: fintrack-db
-          property: connectionString
-    plans:
-      - name: free
-
-databases:
-  - name: fintrack-db
-    databaseName: fintrack
-    user: fintrack_user
-    plan: free
+      - key: PORT
+        value: 8081
