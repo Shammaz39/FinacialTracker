@@ -332,5 +332,3 @@ Fetch transactions by type (INCOME or EXPENSE).
 | Transaction | `/api/transactions/byType`   | GET    | ✅    |
 
 ---
-
-Would you like me to convert this list into a **ready-to-export Markdown or PDF API documentation** format (with Swagger-like formatting and code snippets)?
