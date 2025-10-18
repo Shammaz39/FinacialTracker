@@ -9,7 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -111,6 +113,68 @@ public class TransactionService {
                     .collect(Collectors.toList());
         }
         return transactions;
+    }
+
+
+    public Map<String, Object> getTransactionsWithFiltersAndTotals(
+            Long userId,
+            String categoryName,
+            TransactionType type,
+            String startDate,
+            String endDate
+    ) {
+        // Start with all user transactions
+        List<Transaction> transactions = transactionRepository.findByUserId(userId);
+
+        // Apply filters
+        if (categoryName != null && !categoryName.trim().isEmpty()) {
+            transactions = transactions.stream()
+                    .filter(t -> {
+                        String transactionCategory = (t.getCategory() != null) ? t.getCategory().getName() : null;
+                        return categoryName.equals(transactionCategory);
+                    })
+                    .collect(Collectors.toList());
+        }
+
+        if (type != null) {
+            transactions = transactions.stream()
+                    .filter(t -> t.getType() == type)
+                    .collect(Collectors.toList());
+        }
+
+        if (startDate != null && endDate != null) {
+            LocalDate start = LocalDate.parse(startDate);
+            LocalDate end = LocalDate.parse(endDate);
+            transactions = transactions.stream()
+                    .filter(t -> {
+                        LocalDate transactionDate = t.getDate();
+                        return !transactionDate.isBefore(start) && !transactionDate.isAfter(end);
+                    })
+                    .collect(Collectors.toList());
+        }
+
+        // Calculate totals with positive/negative amounts
+        double totalIncome = transactions.stream()
+                .filter(t -> t.getType() == TransactionType.INCOME)
+                .mapToDouble(Transaction::getAmount)
+                .sum();
+
+        double totalExpenses = transactions.stream()
+                .filter(t -> t.getType() == TransactionType.EXPENSE)
+                .mapToDouble(Transaction::getAmount)
+                .sum();
+
+        double netAmount = totalIncome - totalExpenses;
+
+        // Create response object
+        Map<String, Object> response = new HashMap<>();
+        response.put("transactions", transactions);
+        response.put("totalIncome", totalIncome);
+        response.put("totalExpenses", totalExpenses);
+        response.put("netAmount", netAmount);
+        response.put("transactionCount", transactions.size());
+
+        return response;
     }
 
 }

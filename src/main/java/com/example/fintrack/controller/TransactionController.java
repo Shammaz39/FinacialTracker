@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/transactions")
@@ -75,10 +76,9 @@ public class TransactionController {
     }
 
 
-
     @GetMapping("/filter")
     @Operation(summary = "Get Transactions with Combined Filters", description = "Fetch transactions with multiple filters applied")
-    public ResponseEntity<List<Transaction>> getTransactionsWithFilters(
+    public ResponseEntity<Map<String, Object>> getTransactionsWithFilters(
             @RequestParam(required = false) String categoryName,
             @RequestParam(required = false) TransactionType type,
             @RequestParam(required = false) String startDate,
@@ -86,10 +86,10 @@ public class TransactionController {
             HttpServletRequest request
     ) {
         Long userId = (Long) request.getAttribute("id");
-        List<Transaction> transactions = transactionService.getTransactionsWithFilters(
+        Map<String, Object> response = transactionService.getTransactionsWithFiltersAndTotals(
                 userId, categoryName, type, startDate, endDate
         );
-        return ResponseEntity.ok(transactions);
+        return ResponseEntity.ok(response);
     }
 
 }
