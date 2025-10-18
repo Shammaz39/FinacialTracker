@@ -73,4 +73,23 @@ public class TransactionController {
         List<Transaction> list = transactionService.getTransactionsByType(userId, type);
         return ResponseEntity.ok(list);
     }
+
+
+
+    @GetMapping("/filter")
+    @Operation(summary = "Get Transactions with Combined Filters", description = "Fetch transactions with multiple filters applied")
+    public ResponseEntity<List<Transaction>> getTransactionsWithFilters(
+            @RequestParam(required = false) String categoryName,
+            @RequestParam(required = false) TransactionType type,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate,
+            HttpServletRequest request
+    ) {
+        Long userId = (Long) request.getAttribute("id");
+        List<Transaction> transactions = transactionService.getTransactionsWithFilters(
+                userId, categoryName, type, startDate, endDate
+        );
+        return ResponseEntity.ok(transactions);
+    }
+
 }

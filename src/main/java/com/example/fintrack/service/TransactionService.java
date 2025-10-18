@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class TransactionService {
@@ -71,4 +72,45 @@ public class TransactionService {
     public List<Transaction> getTransactionsByType(Long userId, TransactionType type) {
         return transactionRepository.findByUserIdAndType(userId, type);
     }
+
+
+    public List<Transaction> getTransactionsWithFilters(
+            Long userId,
+            String categoryName,
+            TransactionType type,
+            String startDate,
+            String endDate
+    ) {
+        // Start with all user transactions
+        List<Transaction> transactions = transactionRepository.findByUserId(userId);
+
+        // Apply filters
+        if (categoryName != null && !categoryName.trim().isEmpty()) {
+            transactions = transactions.stream()
+                    .filter(t -> {
+                        String transactionCategory = (t.getCategory() != null) ? t.getCategory().getName() : null;
+                        return categoryName.equals(transactionCategory);
+                    })
+                    .collect(Collectors.toList());
+        }
+
+        if (type != null) {
+            transactions = transactions.stream()
+                    .filter(t -> t.getType() == type)
+                    .collect(Collectors.toList());
+        }
+
+        if (startDate != null && endDate != null) {
+            LocalDate start = LocalDate.parse(startDate);
+            LocalDate end = LocalDate.parse(endDate);
+            transactions = transactions.stream()
+                    .filter(t -> {
+                        LocalDate transactionDate = t.getDate();
+                        return !transactionDate.isBefore(start) && !transactionDate.isAfter(end);
+                    })
+                    .collect(Collectors.toList());
+        }
+        return transactions;
+    }
+
 }
