@@ -40,7 +40,7 @@ public class TransactionService {
     }
 
     public List<Transaction> getTransactions(Long userId) {
-        return transactionRepository.findByUserId(userId);
+        return transactionRepository.findByUserIdOrderByDateDesc(userId);
     }
 
     public List<Transaction> getTransactionCategory(Long userId, String categoryName) {
@@ -84,7 +84,7 @@ public class TransactionService {
             String endDate
     ) {
         // Start with all user transactions
-        List<Transaction> transactions = transactionRepository.findByUserId(userId);
+        List<Transaction> transactions = transactionRepository.findByUserIdOrderByDateDesc(userId);
 
         // Apply filters
         if (categoryName != null && !categoryName.trim().isEmpty()) {
@@ -124,7 +124,7 @@ public class TransactionService {
             String endDate
     ) {
         // Start with all user transactions
-        List<Transaction> transactions = transactionRepository.findByUserId(userId);
+        List<Transaction> transactions = transactionRepository.findByUserIdOrderByDateDesc(userId);
 
         // Apply filters
         if (categoryName != null && !categoryName.trim().isEmpty()) {
