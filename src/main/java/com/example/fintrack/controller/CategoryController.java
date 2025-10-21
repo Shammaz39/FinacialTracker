@@ -40,6 +40,7 @@ public class CategoryController {
                                                 HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("id");
         category.setUserId(userId); // bind category to logged-in user
+        category.setName(category.getName().trim());
         return ResponseEntity.ok(categoryRepository.save(category));
     }
 

@@ -16,7 +16,7 @@ public class OpenApiConfig {
         return new OpenAPI()
                 .info(new Info()
                         .title("FinTrack API")
-                        .version("1.0")
+                        .version("1.0.11")
                         .description("API documentation for FinTrack"))
                 .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
                 .components(new Components()
